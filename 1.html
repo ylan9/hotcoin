@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>地址管理</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background-color: #fff;
+            padding: 16px 20px;
+            border-bottom: 1px solid #eaeaea;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #0066cc;
+            font-size: 1.2rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .back-btn:active {
+            background-color: #f0f0f0;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .address-count {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* 主要内容区 */
+        .main-content {
+            padding: 20px;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+
+        .empty-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .empty-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* 地址卡片 */
+        .address-card {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+            border: 1px solid #eaeaea;
+        }
+
+        .address-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .address-info {
+            flex: 1;
+        }
+
+        .address-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .address-phone {
+            color: #666;
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .default-tag {
+            background-color: #e6f2ff;
+            color: #0066cc;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .address-details {
+            color: #555;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+        }
+
+        .address-line {
+            margin-bottom: 6px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .address-line i {
+            color: #999;
+            width: 20px;
+            margin-right: 6px;
+        }
+
+        /* 操作按钮 */
+        .address-actions {
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 16px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .action-btn:active {
+            opacity: 0.8;
+        }
+
+        .btn-default {
+            background-color: #fff;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+
+        .btn-default:active {
+            background-color: #f5f5f5;
+        }
+
+        .btn-edit {
+            background-color: #fff;
+            color: #0066cc;
+            border: 1px solid #0066cc;
+        }
+
+        .btn-edit:active {
+            background-color: #e6f2ff;
+        }
+
+        .btn-delete {
+            background-color: #fff;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .btn-delete:active {
+            background-color: #ffe6e6;
+        }
+
+        /* 表单区域 */
+        .form-container {
+            display: none;
+        }
+
+        .form-section {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #eaeaea;
+        }
+
+        .form-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #0066cc;
+        }
+
+        .checkbox-label {
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .form-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-submit {
+            background-color: #0066cc;
+            color: white;
+        }
+
+        .btn-submit:active {
+            background-color: #0052a3;
+        }
+
+        .btn-cancel {
+            background-color: #fff;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+
+        .btn-cancel:active {
+            background-color: #f5f5f5;
+        }
+
+        /* 底部操作栏 */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            padding: 16px 20px;
+            border-top: 1px solid #eaeaea;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 16px 20px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-btn:active {
+            background-color: #0052a3;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-text {
+            text-align: center;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-modal-cancel {
+            background-color: #fff;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+
+        .btn-modal-cancel:active {
+            background-color: #f5f5f5;
+        }
+
+        .btn-modal-confirm {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-modal-confirm:active {
+            background-color: #c0392b;
+        }
+
+        .btn-modal-back {
+            background-color: #0066cc;
+            color: white;
+        }
+
+        .btn-modal-back:active {
+            background-color: #0052a3;
+        }
+
+        /* 响应式 */
+        @media (min-width: 768px) {
+            .main-content {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+            
+            .bottom-bar {
+                max-width: 600px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <button class="back-btn" id="back-btn" onclick="handleBack()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div>
+                    <div class="header-title">地址管理</div>
+                    <div class="address-count">共 <span id="address-count">0</span> 个地址</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="main-content">
+        <!-- 地址列表 -->
+        <div id="address-list-container">
+            <!-- 地址卡片将通过JavaScript动态插入 -->
+        </div>
+        
+        <!-- 空状态 -->
+        <div id="empty-state" class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="empty-title">暂无地址</div>
+            <div class="empty-text">您还没有添加任何地址，点击下方按钮添加第一个地址</div>
+        </div>
+
+        <!-- 表单区域 -->
+        <div id="form-container" class="form-container">
+            <div class="form-section">
+                <h2 class="form-title" id="form-title">添加新地址</h2>
+                <form id="address-form">
+                    <input type="hidden" id="address-id" value="">
+                    
+                    <div class="form-group">
+                        <label for="name" class="form-label">收货人</label>
+                        <input type="text" id="name" class="form-input" placeholder="请输入收货人姓名" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone" class="form-label">联系电话</label>
+                        <input type="tel" id="phone" class="form-input" placeholder="请输入手机号码" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="region" class="form-label">省/市/区</label>
+                        <input type="text" id="region" class="form-input" placeholder="例如：广东省深圳市南山区" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address" class="form-label">详细地址</label>
+                        <textarea id="address" class="form-textarea" placeholder="请输入街道、小区、门牌号等详细信息" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="postal-code" class="form-label">邮政编码（可选）</label>
+                        <input type="text" id="postal-code" class="form-input" placeholder="邮政编码">
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="is-default">
+                        <label for="is-default" class="checkbox-label">设为默认地址</label>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="form-btn btn-submit" id="submit-btn">
+                            <i class="fas fa-save"></i> 保存
+                        </button>
+                        <button type="button" class="form-btn btn-cancel" id="cancel-btn">
+                            <i class="fas fa-times"></i> 取消
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部操作栏 -->
+    <div class="bottom-bar">
+        <button class="add-btn" id="add-new-btn">
+            <i class="fas fa-plus"></i> 添加新地址
+        </button>
+    </div>
+
+    <!-- 删除确认模态框 -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">确认删除</h3>
+            <p class="modal-text">您确定要删除地址 "<span id="delete-address-name"></span>" 吗？此操作无法撤销。</p>
+            <div class="modal-actions">
+                <button class="modal-btn btn-modal-cancel" id="cancel-delete">取消</button>
+                <button class="modal-btn btn-modal-confirm" id="confirm-delete">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 返回确认模态框 -->
+    <div id="back-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">返回确认</h3>
+            <p class="modal-text">您有未保存的编辑内容，确定要返回吗？</p>
+            <div class="modal-actions">
+                <button class="modal-btn btn-modal-cancel" id="cancel-back">继续编辑</button>
+                <button class="modal-btn btn-modal-back" id="confirm-back">确定返回</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 地址数据模型
+        class Address {
+            constructor(id, name, phone, region, address, postalCode, isDefault) {
+                this.id = id;
+                this.name = name;
+                this.phone = phone;
+                this.region = region;
+                this.address = address;
+                this.postalCode = postalCode;
+                this.isDefault = isDefault;
+            }
+        }
+
+        // 地址管理应用
+        class AddressManager {
+            constructor() {
+                this.addresses = [];
+                this.nextId = 1;
+                this.isEditing = false;
+                this.currentEditId = null;
+                this.isFormVisible = false;
+                this.init();
+            }
+            
+            init() {
+                // 加载示例数据
+                this.loadSampleData();
+                
+                // 绑定事件
+                this.bindEvents();
+                
+                // 初始化显示地址列表
+                this.showAddressList();
+                
+                // 更新统计
+                this.updateStats();
+            }
+            
+            loadSampleData() {
+                // 添加一些示例地址
+                this.addresses = [
+                    new Address(this.nextId++, '张三', '13800138000', '北京市朝阳区', '建国门外大街1号国贸大厦A座1001室', '100020', true),
+                    new Address(this.nextId++, '李四', '13900139000', '上海市浦东新区', '陆家嘴环路1000号上海中心大厦', '200120', false),
+                    new Address(this.nextId++, '王五', '13600136000', '广东省深圳市南山区', '科技园中区腾讯大厦', '518057', false)
+                ];
+            }
+            
+            bindEvents() {
+                // 表单提交
+                document.getElementById('address-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveAddress();
+                });
+                
+                // 添加新地址按钮
+                document.getElementById('add-new-btn').addEventListener('click', () => {
+                    this.showAddForm();
+                });
+                
+                // 取消编辑按钮
+                document.getElementById('cancel-btn').addEventListener('click', () => {
+                    this.showAddressList();
+                });
+                
+                // 删除确认按钮
+                document.getElementById('confirm-delete').addEventListener('click', () => {
+                    this.deleteAddress(this.addressToDelete);
+                    this.closeModal('delete-modal');
+                });
+                
+                // 取消删除按钮
+                document.getElementById('cancel-delete').addEventListener('click', () => {
+                    this.closeModal('delete-modal');
+                });
+                
+                // 返回确认按钮
+                document.getElementById('confirm-back').addEventListener('click', () => {
+                    this.showAddressList();
+                    this.closeModal('back-modal');
+                });
+                
+                // 取消返回按钮
+                document.getElementById('cancel-back').addEventListener('click', () => {
+                    this.closeModal('back-modal');
+                });
+                
+                // 点击模态框外部关闭
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            this.closeModal(modal.id);
+                        }
+                    });
+                });
+            }
+            
+            showAddressList() {
+                document.getElementById('address-list-container').style.display = 'block';
+                document.getElementById('empty-state').style.display = this.addresses.length === 0 ? 'block' : 'none';
+                document.getElementById('form-container').style.display = 'none';
+                document.querySelector('.bottom-bar').style.display = 'block';
+                this.isFormVisible = false;
+                this.renderAddressList();
+            }
+            
+            showAddForm() {
+                this.resetForm();
+                document.getElementById('address-list-container').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'none';
+                document.getElementById('form-container').style.display = 'block';
+                document.querySelector('.bottom-bar').style.display = 'none';
+                document.getElementById('form-title').textContent = '添加新地址';
+                document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i> 保存';
+                this.isFormVisible = true;
+                this.isEditing = false;
+                this.currentEditId = null;
+                
+                // 滚动到顶部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            showEditForm(id) {
+                const address = this.addresses.find(addr => addr.id == id);
+                if (!address) return;
+                
+                // 填充表单
+                document.getElementById('address-id').value = address.id;
+                document.getElementById('name').value = address.name;
+                document.getElementById('phone').value = address.phone;
+                document.getElementById('region').value = address.region;
+                document.getElementById('address').value = address.address;
+                document.getElementById('postal-code').value = address.postalCode;
+                document.getElementById('is-default').checked = address.isDefault;
+                
+                // 更新UI状态
+                document.getElementById('address-list-container').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'none';
+                document.getElementById('form-container').style.display = 'block';
+                document.querySelector('.bottom-bar').style.display = 'none';
+                document.getElementById('form-title').textContent = '编辑地址';
+                document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i> 更新';
+                this.isFormVisible = true;
+                this.isEditing = true;
+                this.currentEditId = id;
+                
+                // 滚动到顶部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            saveAddress() {
+                const id = document.getElementById('address-id').value;
+                const name = document.getElementById('name').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const region = document.getElementById('region').value.trim();
+                const address = document.getElementById('address').value.trim();
+                const postalCode = document.getElementById('postal-code').value.trim();
+                const isDefault = document.getElementById('is-default').checked;
+                
+                // 简单验证
+                if (!name || !phone || !region || !address) {
+                    this.showAlert('请填写所有必填字段！');
+                    return;
+                }
+                
+                if (!/^1[3-9]\d{9}$/.test(phone)) {
+                    this.showAlert('请输入正确的手机号码！');
+                    return;
+                }
+                
+                if (isDefault) {
+                    // 如果设置为默认，取消其他地址的默认状态
+                    this.addresses.forEach(addr => {
+                        addr.isDefault = false;
+                    });
+                }
+                
+                if (this.isEditing && id) {
+                    // 编辑现有地址
+                    const index = this.addresses.findIndex(addr => addr.id == id);
+                    if (index !== -1) {
+                        this.addresses[index] = new Address(
+                            parseInt(id), name, phone, region, address, postalCode, isDefault
+                        );
+                    }
+                } else {
+                    // 添加新地址
+                    const newAddress = new Address(
+                        this.nextId++, name, phone, region, address, postalCode, isDefault
+                    );
+                    this.addresses.push(newAddress);
+                }
+                
+                // 显示成功消息
+                this.showAlert('地址保存成功！');
+                
+                // 返回地址列表
+                this.showAddressList();
+                
+                // 更新统计
+                this.updateStats();
+            }
+            
+            deleteAddress(id) {
+                this.addresses = this.addresses.filter(addr => addr.id != id);
+                this.renderAddressList();
+                this.updateStats();
+                
+                // 显示删除成功消息
+                this.showAlert('地址已删除！');
+                
+                // 如果没有地址了，显示空状态
+                if (this.addresses.length === 0) {
+                    document.getElementById('empty-state').style.display = 'block';
+                }
+            }
+            
+            setDefaultAddress(id) {
+                this.addresses.forEach(addr => {
+                    addr.isDefault = (addr.id == id);
+                });
+                this.renderAddressList();
+                
+                // 显示设置成功消息
+                this.showAlert('已设置为默认地址！');
+            }
+            
+            showDeleteModal(addressId) {
+                const address = this.addresses.find(addr => addr.id == addressId);
+                if (!address) return;
+                
+                this.addressToDelete = addressId;
+                document.getElementById('delete-address-name').textContent = address.name;
+                this.showModal('delete-modal');
+            }
+            
+            showModal(modalId) {
+                document.getElementById(modalId).style.display = 'flex';
+            }
+            
+            closeModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+            
+            resetForm() {
+                document.getElementById('address-form').reset();
+                document.getElementById('address-id').value = '';
+                document.getElementById('is-default').checked = false;
+            }
+            
+            renderAddressList() {
+                const container = document.getElementById('address-list-container');
+                
+                if (this.addresses.length === 0) {
+                    container.innerHTML = '';
+                    return;
+                }
+                
+                // 按默认地址优先排序
+                const sortedAddresses = [...this.addresses].sort((a, b) => b.isDefault - a.isDefault);
+                
+                let html = '';
+                sortedAddresses.forEach(address => {
+                    html += `
+                    <div class="address-card" id="address-${address.id}">
+                        <div class="address-header">
+                            <div class="address-info">
+                                <div class="address-name">
+                                    ${address.name}
+                                    ${address.isDefault ? '<span class="default-tag">默认</span>' : ''}
+                                </div>
+                                <div class="address-phone">${address.phone}</div>
+                            </div>
+                        </div>
+                        <div class="address-details">
+                            <div class="address-line">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span><strong>地区：</strong>${address.region}</span>
+                            </div>
+                            <div class="address-line">
+                                <i class="fas fa-home"></i>
+                                <span><strong>地址：</strong>${address.address}</span>
+                            </div>
+                            ${address.postalCode ? `
+                            <div class="address-line">
+                                <i class="fas fa-envelope"></i>
+                                <span><strong>邮编：</strong>${address.postalCode}</span>
+                            </div>` : ''}
+                        </div>
+                        <div class="address-actions">
+                            ${!address.isDefault ? `
+                            <button class="action-btn btn-default" onclick="addressManager.setDefaultAddress(${address.id})">
+                                <i class="fas fa-star"></i> 设默认
+                            </button>` : ''}
+                            <button class="action-btn btn-edit" onclick="addressManager.showEditForm(${address.id})">
+                                <i class="fas fa-edit"></i> 编辑
+                            </button>
+                            <button class="action-btn btn-delete" onclick="addressManager.showDeleteModal(${address.id})">
+                                <i class="fas fa-trash"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            }
+            
+            updateStats() {
+                document.getElementById('address-count').textContent = this.addresses.length;
+            }
+            
+            showAlert(message) {
+                alert(message);
+            }
+            
+            checkFormDirty() {
+                if (!this.isFormVisible) return false;
+                
+                const name = document.getElementById('name').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const region = document.getElementById('region').value.trim();
+                const address = document.getElementById('address').value.trim();
+                const postalCode = document.getElementById('postal-code').value.trim();
+                
+                return name || phone || region || address || postalCode;
+            }
+        }
+
+        // 处理返回按钮点击
+        function handleBack() {
+            if (addressManager.isFormVisible) {
+                if (addressManager.checkFormDirty()) {
+                    // 有未保存的内容，显示确认对话框
+                    addressManager.showModal('back-modal');
+                } else {
+                    // 没有未保存的内容，直接返回
+                    addressManager.showAddressList();
+                }
+            } else {
+                // 不在表单页面，执行默认返回操作
+                if (history.length > 1) {
+                    history.back();
+                } else {
+                    addressManager.showAlert('已返回');
+                }
+            }
+        }
+
+        // 初始化应用
+        const addressManager = new AddressManager();
+        
+        // 使 addressManager 在全局可访问
+        window.addressManager = addressManager;
+        
+        // 监听浏览器返回按钮
+        window.addEventListener('popstate', function(event) {
+            if (addressManager.isFormVisible) {
+                if (addressManager.checkFormDirty()) {
+                    addressManager.showModal('back-modal');
+                    history.pushState(null, null, window.location.href);
+                } else {
+                    addressManager.showAddressList();
+                }
+            }
+        });
+        
+        // 添加历史记录，以便支持浏览器返回按钮
+        history.replaceState({ page: 'list' }, null, null);
+        
+        // 监听表单显示/隐藏来管理历史记录
+        const originalShowAddressList = addressManager.showAddressList.bind(addressManager);
+        addressManager.showAddressList = function() {
+            originalShowAddressList();
+            history.replaceState({ page: 'list' }, null, null);
+        };
+        
+        const originalShowAddForm = addressManager.showAddForm.bind(addressManager);
+        addressManager.showAddForm = function() {
+            originalShowAddForm();
+            history.pushState({ page: 'form' }, null, null);
+        };
+        
+        const originalShowEditForm = addressManager.showEditForm.bind(addressManager);
+        addressManager.showEditForm = function(id) {
+            originalShowEditForm(id);
+            history.pushState({ page: 'form' }, null, null);
+        };
+    </script>
+</body>
+</html>
