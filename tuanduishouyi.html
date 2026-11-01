@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#7c3aed">
-<title>Hotcoin收益表格</title>
+<title>Hotcoin团队收益表格</title>
 <style>
   :root{
     --bg1:#0b0820;
@@ -19,15 +19,16 @@
     --line:rgba(255,255,255,.10);
     --card:rgba(255,255,255,.06);
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-size: 18px;}
+  span{
+  	font-size: 16px;
+  }
   body{
     margin:0;
     font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
     color:var(--text);
     background:
-      radial-gradient(1100px 700px at 85% -10%,rgba(168,85,247,.45),transparent 60%),
-      radial-gradient(900px 700px at -10% 8%,rgba(45,212,191,.28),transparent 58%),
-      linear-gradient(160deg,var(--bg1),var(--bg2) 55%,#0d071f);
+      radial-gradient(1100px 700px at 85% -10%, rgb(20 12 43), transparent 60%), radial-gradient(900px 700px at -10% 8%, rgba(45, 212, 191, .28), transparent 58%), linear-gradient(160deg, var(--bg1), var(--bg2) 55%, #0d071f);
     background-attachment:fixed;
     min-height:100vh;
     padding:0 0 42px;
@@ -40,8 +41,8 @@
     padding:30px 18px 24px;
     text-align:center;
     overflow:hidden;
-    border-bottom:1px solid var(--line);
-    background:linear-gradient(180deg,rgba(124,58,237,.22),rgba(11,8,32,.0));
+    background:linear-gradient(180deg, rgb(18 11 42), rgba(11, 8, 32, .0));
+    
   }
   .hero::before{
     content:"";position:absolute;inset:0;
@@ -128,7 +129,7 @@
     display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;
   }
   .chip{
-    font-size:11.5px;color:var(--gold-soft);
+    font-size:14.5px;color:var(--gold-soft);
     padding:6px 11px;border-radius:999px;
     background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.3);
   }
@@ -146,9 +147,9 @@
 <body>
 
 <header class="hero">
-  <div class="badge"><i></i>TEAM INCOME</div>
-  <h1><span class="grad">Hotcoin</span> 收益表格</h1>
-  <p>团队业绩 · 月度复利测算 · 不同规模收益对比</p>
+  <!-- <div class="badge"><i></i>TEAM INCOME</div> -->
+  <h1><span class="grad" style="font-size: 24px;">Hotcoin</span> 团队收益表格</h1>
+  <p style="font-size: 14px;">团队业绩 · 月度复利测算 · 不同规模收益对比</p>
 </header>
 
 <div class="wrap">
@@ -156,7 +157,7 @@
   <!-- 1. 基础口径 -->
   <section class="card">
     <div class="sec-head">
-      <div class="no">1</div><h2>收益计算口径</h2><span>基础示例</span>
+      <div class="no">1</div><h2>收益计算口径</h2>
     </div>
     <div class="table-box">
       <div class="assume">
@@ -198,9 +199,9 @@
   <!-- 2. 12个月复利 -->
   <section class="card">
     <div class="sec-head">
-      <div class="no">2</div><h2>12 个月复利测算</h2><span>按月复利 30%计算</span>
+      <div class="no">2</div><h2 >12 个月复利测算</h2><span style="font-size: 16px;">假如按月复利 30%计算</span>
     </div>
-    <div class="table-box">
+    <div class="table-box" style="margin-top: 30px;">
       <table>
         <thead>
           <tr>
@@ -231,11 +232,14 @@
 
   <!-- 3. 不同规模对比 -->
   <section>
-    <div class="sec-head">
-      <div class="no">3</div><h2>不同团队规模收益对比（100$一个账户）</h2><span>每账户 100¥ × 7 次</span>
-    </div>
+    
     <div class="card">
-      <div class="scale-list">
+
+		<div class="sec-head">
+	      <div class="no">3</div><h2>不同团队规模收益对比（100$一个账户）</h2><span>每账户 100¥ × 7 次</span>
+	    </div>
+
+      <div class="scale-list" style="margin-top: 20px;">
         <div class="scale hero-card">
           <div class="tag">5000 人<br>350万业绩</div>
           <div>
@@ -266,7 +270,7 @@
     <b>风险提示：</b>高收益模型伴随高风险，任何涉及资金的投资或返佣行为，请务必核实平台资质与合规性，谨慎决策。
   </div>
 
-  <footer>Hotcoin 收益测算表 · 数据仅供参考</footer>
+  <footer>Hotcoin 团队收益表格 · 数据仅供参考</footer>
 </div>
 
 </body>
