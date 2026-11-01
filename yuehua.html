@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#7c3aed">
+<title>月化复利测算表</title>
+<style>
+  :root{
+    --bg1:#0b0820;--bg2:#1a103a;
+    --gold:#ffcf5b;--gold-soft:#ffe6a3;
+    --violet:#7c3aed;--violet-2:#a855f7;
+    --mint:#2dd4bf;--pink:#fb7185;
+    --text:#e8e4ff;--muted:#9d96c4;--line:rgba(255,255,255,.10);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-size: 20px;}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1100px 700px at 85% -10%,rgba(168,85,247,.45),transparent 60%),
+      radial-gradient(900px 700px at -10% 8%,rgba(45,212,191,.28),transparent 58%),
+      linear-gradient(160deg,var(--bg1),var(--bg2) 55%,#0d071f);
+    background-attachment:fixed;min-height:100vh;padding:0 0 42px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 14px}
+
+  /* ===== 顶部标题 ===== */
+  .hero{
+    position:relative;padding:30px 18px 24px;text-align:center;overflow:hidden;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(124,58,237,.22),rgba(11,8,32,.0));
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(2px 2px at 12% 24%,#fff,transparent),
+      radial-gradient(2px 2px at 78% 14%,#fff,transparent),
+      radial-gradient(1.5px 1.5px at 42% 62%,#fff,transparent),
+      radial-gradient(1.5px 1.5px at 88% 48%,#fff,transparent);
+    opacity:.55;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;
+    font-size:12px;letter-spacing:1px;color:var(--gold-soft);
+    background:rgba(255,207,91,.12);border:1px solid rgba(255,207,91,.35);
+  }
+  .badge i{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+  .hero h1{position:relative;margin:12px 0 6px;font-size:25px;line-height:1.35;letter-spacing:1px}
+  .hero h1 .grad{
+    background:linear-gradient(92deg,#fff 0%,var(--gold-soft) 45%,var(--gold) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p{position:relative;margin:0;font-size:12.5px;color:var(--muted)}
+  .hero .base{
+    display:inline-block;margin-top:11px;padding:6px 14px;border-radius:999px;
+    font-size:12.5px;color:var(--gold);font-weight:600;
+    background:rgba(255,207,91,.14);border:1px solid rgba(255,207,91,.35);
+  }
+
+  section{margin-top:22px}
+  .sec-head{display:flex;align-items:center;gap:10px;margin:0 2px 12px}
+  .sec-head .no{
+    width:26px;height:26px;flex:none;border-radius:8px;display:grid;place-items:center;
+    font-size:13px;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,var(--violet-2),var(--violet));
+    box-shadow:0 4px 12px rgba(124,58,237,.45);
+  }
+  .sec-head h2{margin:0;font-size:16.5px;letter-spacing:.4px}
+  .sec-head span{font-size:11.5px;color:var(--muted);margin-left:auto;letter-spacing:.4px}
+
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035));
+    border:1px solid var(--line);border-radius:16px;padding:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.28);
+  }
+  .table-box{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:400px}
+  thead th{
+    padding:11px 8px;font-size:12.5px;font-weight:600;color:var(--gold-soft);
+    background:rgba(124,58,237,.20);border-bottom:1px solid rgba(255,207,91,.28);white-space:nowrap;
+  }
+  thead th:first-child{border-top-left-radius:11px}
+  thead th:last-child{border-top-right-radius:11px}
+  tbody td{padding:11px 8px;text-align:center;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:last-child td:first-child{border-bottom-left-radius:11px}
+  tbody tr:last-child td:last-child{border-bottom-right-radius:11px}
+  tbody tr:nth-child(even){background:rgba(255,255,255,.035)}
+  .rate{font-weight:700;color:#fff;font-size:14px}
+  td.mult{color:var(--mint);font-weight:600}
+  td.usd{color:var(--text);font-weight:600}
+  td.cny{color:var(--gold);font-weight:700}
+  .hot td{background:rgba(251,113,133,.13)!important}
+  .hot .rate{color:var(--pink)}
+
+  .note{
+    margin-top:22px;font-size:11.5px;line-height:1.85;color:var(--muted);
+    background:rgba(255,255,255,.04);border:1px dashed var(--line);
+    border-radius:14px;padding:14px 15px;
+  }
+  .note b{color:var(--gold-soft)}
+  .note .fml{
+    margin-top:8px;padding:9px 11px;border-radius:9px;
+    background:rgba(45,212,191,.10);color:var(--mint);font-weight:600;font-size:12px;
+  }
+  footer{margin-top:26px;text-align:center;font-size:11px;color:#6d6791;letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <!-- <div class="badge"><i></i>COMPOUND INTEREST</div> -->
+  <h1 style="font-size: 22px;"><span class="grad" style="font-size: 22px;">月化复利</span> 收益</h1>
+  <p style="font-size: 16px;">不同月化率 · <span style="font-size: 20px;font-weight: bold;color: red;">3 年期</span> · 本金 100 美金</p>
+  <div class="base">本金 100 USD ｜ 复利周期 36 个月</div>
+</header>
+
+<div class="wrap">
+
+  <section class="card">
+    <div class="sec-head">
+      <div class="no">1</div><h2>3 年复利结果对照</h2><span>USD / CNY</span>
+    </div>
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>月化率</th>
+            <th>3年复利倍数</th>
+            <th>美金资产 (USD)</th>
+            <th>人民币资产 (CNY)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rate">5%</td>
+            <td class="mult">5.79 倍</td>
+            <td class="usd">$ 579.18</td>
+            <td class="cny">¥ 4,112</td>
+          </tr>
+          <tr>
+            <td class="rate">10%</td>
+            <td class="mult">30.91 倍</td>
+            <td class="usd">$ 3,091.27</td>
+            <td class="cny">¥ 21,948</td>
+          </tr>
+          <tr>
+            <td class="rate">15%</td>
+            <td class="mult">153.15 倍</td>
+            <td class="usd">$ 15,315.19</td>
+            <td class="cny">¥ 108,738</td>
+          </tr>
+          <tr>
+            <td class="rate">20%</td>
+            <td class="mult">708.80 倍</td>
+            <td class="usd">$ 70,880.19</td>
+            <td class="cny">¥ 503,249</td>
+          </tr>
+          <tr>
+            <td class="rate">25%</td>
+            <td class="mult">3,081.49 倍</td>
+            <td class="usd">$ 308,148.79</td>
+            <td class="cny">¥ 2,187,856</td>
+          </tr>
+          <tr class="hot">
+            <td class="rate">30%</td>
+            <td class="mult">12,646.22 倍</td>
+            <td class="usd">$ 1,264,621.86</td>
+            <td class="cny">¥ 8,978,815</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <b>计算说明：</b>复利期数 = 3 年 × 12 个月 = <b>36 期</b>；月化率按月复利滚存，不追加本金。<br>
+      <!-- <div class="fml">资产 = 100 × (1 + 月化率)³⁶ ｜ CNY = USD × 7.1</div> -->
+     <!--  <b>数据观察：</b>月化从 5% 提升到 30%，3 年倍数由 5.79 倍飙升至 <b>1.26 万倍</b>——复利对收益率极度敏感，差距并非线性而是指数级放大。<br> -->
+     <!--  <b>风险提示：</b>月化 15% 以上（年化远超 100%）属于极不现实的收益假设，任何承诺此类回报的资金盘、返佣盘均存在极高归零风险，请务必核实平台资质与合规性，切勿投入无法承受损失的本金。 -->
+    </div>
+  </section>
+
+  <footer>月化复利测算表 · 数据仅供参考<!-- ，不构成投资建议 --></footer>
+</div>
+
+</body>
+</html>
