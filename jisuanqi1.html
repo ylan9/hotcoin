@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>复利计算器</title>
+    <script src="https://aisearch-task.bj.bcebos.com/static/tailwindcss-3.4.17.js"></script>
+    <link rel="stylesheet" href="https://aisearch-task.bj.bcebos.com/static/katex-0.16.47.min.css">
+    <script src="https://aisearch-task.bj.bcebos.com/static/katex-0.16.47.min.js"></script>
+    <style>
+        :root {
+            --brand-rgb: 14, 116, 144;
+            --accent-rgb: 251, 146, 60;
+            --success-rgb: 34, 197, 94;
+            --card-bg: #ffffff;
+            --bg-start: #f0f9ff;
+            --bg-mid: #e0f2fe;
+            --bg-end: #f0fdfa;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 50%, var(--bg-end) 100%);
+            min-height: 100vh;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+        
+        .input-field {
+            transition: all 0.25s cubic-bezier(.2,.8,.2,1);
+        }
+        
+        .input-field:focus {
+            box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.15);
+            border-color: rgb(var(--brand-rgb));
+        }
+        
+        .btn-generate {
+            background: linear-gradient(135deg, rgb(var(--brand-rgb)) 0%, rgb(7, 89, 133) 100%);
+            transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+            box-shadow: 0 4px 14px rgba(var(--brand-rgb), 0.35);
+        }
+        
+        .btn-generate:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 8px rgba(var(--brand-rgb), 0.3);
+        }
+        
+        .result-table {
+            animation: fadeInUp 0.5s cubic-bezier(.2,.8,.2,1) forwards;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .table-row {
+            transition: background-color 0.2s ease;
+        }
+        
+        .table-row:hover {
+            background-color: rgba(var(--brand-rgb), 0.04);
+        }
+        
+        .summary-card {
+            animation: scaleIn 0.4s cubic-bezier(.2,.8,.2,1) forwards;
+            animation-delay: 0.1s;
+            opacity: 0;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .number-display {
+            font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+        }
+        
+        .header-bg {
+            background: linear-gradient(135deg, rgb(14, 116, 144) 0%, rgb(6, 78, 98) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .header-bg::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .currency-flag {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .scroll-container {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        
+        .scroll-container::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .scroll-container::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.03);
+            border-radius: 2px;
+        }
+        
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(var(--brand-rgb), 0.3);
+            border-radius: 2px;
+        }
+        
+        .highlight-gain {
+            color: rgb(var(--success-rgb));
+        }
+        
+        .step-badge {
+            background: linear-gradient(135deg, rgb(var(--accent-rgb)) 0%, rgb(249, 115, 22) 100%);
+        }
+    </style>
+</head>
+<body class="pb-8">
+    <!-- Header -->
+    <div class="header-bg text-white pt-[calc(env(safe-area-inset-top)+24px)] pb-8 px-5 relative">
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">复利计算器</h1>
+                    <p class="text-white/70 text-sm mt-0.5">见证时间的力量</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-4 -mt-4 relative z-20">
+        <!-- Input Form Card -->
+        <div class="glass-card rounded-2xl p-5 mb-4">
+            <div class="flex items-center gap-2 mb-5">
+                <div class="step-badge w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold">1</div>
+                <h2 class="text-[17px] font-semibold text-gray-800">输入投资参数</h2>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- 初始金额 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">初始美金金额 ($)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
+                        <input type="number" id="principal" class="input-field w-full pl-9 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-[16px] font-medium placeholder:text-gray-300 focus:outline-none focus:bg-white" placeholder="1000" value="1000" min="0" step="any">
+                    </div>
+                </div>
+                
+                <!-- 月数 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">投资月数</label>
+                    <div class="relative">
+                        <input type="number" id="months" class="input-field w-full pl-4 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-[16px] font-medium placeholder:text-gray-300 focus:outline-none focus:bg-white" placeholder="12" value="12" min="1" max="600" step="1">
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">月</span>
+                    </div>
+                </div>
+                
+                <!-- 月化率 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">月化收益率</label>
+                    <div class="relative">
+                        <input type="number" id="rate" class="input-field w-full pl-4 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-[16px] font-medium placeholder:text-gray-300 focus:outline-none focus:bg-white" placeholder="2" value="2" min="0" max="100" step="0.01">
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+                    </div>
+                </div>
+                
+                <!-- 汇率 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">美元兑人民币汇率</label>
+                    <div class="relative">
+                        <input type="number" id="exchangeRate" class="input-field w-full pl-4 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-[16px] font-medium placeholder:text-gray-300 focus:outline-none focus:bg-white" placeholder="7.25" value="7.25" min="0" step="0.0001">
+                    </div>
+                </div>
+            </div>
+            
+            <button id="generateBtn" class="btn-generate w-full mt-6 py-4 rounded-xl text-white font-semibold text-[16px] flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                生成收益表
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="hidden">
+            <!-- Summary Cards -->
+            <div class="flex items-center gap-2 mb-4 mt-2">
+                <div class="step-badge w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold">2</div>
+                <h2 class="text-[17px] font-semibold text-gray-800">计算结果</h2>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="summary-card glass-card rounded-xl p-4">
+                    <div class="text-xs text-gray-500 mb-1">最终美金资产</div>
+                    <div class="text-[20px] font-bold text-gray-800 number-display" id="finalUsd">$0</div>
+                    <div class="text-xs highlight-gain mt-1" id="usdGain">+0%</div>
+                </div>
+                <div class="summary-card glass-card rounded-xl p-4">
+                    <div class="text-xs text-gray-500 mb-1">最终人民币资产</div>
+                    <div class="text-[20px] font-bold text-gray-800 number-display" id="finalCny">¥0</div>
+                    <div class="text-xs highlight-gain mt-1" id="cnyGain">+0%</div>
+                </div>
+            </div>
+            
+            <div class="summary-card glass-card rounded-xl p-4 mb-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-xs text-gray-500 mb-1">总复利倍数</div>
+                        <div class="text-2xl font-bold text-[rgb(var(--brand-rgb))] number-display" id="finalMultiplier">1.00x</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-gray-500 mb-1">累计收益</div>
+                        <div class="text-[20px] font-bold highlight-gain number-display" id="totalProfit">$0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detailed Table -->
+            <div class="glass-card rounded-2xl overflow-hidden result-table">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[rgb(var(--brand-rgb))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        逐月收益明细
+                    </h3>
+                </div>
+                <div class="scroll-container overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">月份</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">复利倍数</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">美金资产</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">人民币资产</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-gray-100">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Formula Info -->
+            <div class="glass-card rounded-2xl p-5 mt-4 result-table" style="animation-delay: 0.2s;">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-[rgb(var(--accent-rgb))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    复利公式说明
+                </h3>
+                <div class="bg-gray-50 rounded-xl p-4 text-center" id="formulaBox">
+                </div>
+                <p class="text-xs text-gray-500 mt-3 leading-relaxed">
+                    复利计算采用月复利计息方式，每月收益自动计入下月本金继续产生收益。爱因斯坦曾说："复利是世界第八大奇迹，知之者赚之，不知者被赚之。"
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const principalInput = document.getElementById('principal');
+        const monthsInput = document.getElementById('months');
+        const rateInput = document.getElementById('rate');
+        const exchangeRateInput = document.getElementById('exchangeRate');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultsSection = document.getElementById('results');
+        const tableBody = document.getElementById('tableBody');
+        
+        // Format numbers
+        function formatCurrency(num, currency = 'USD') {
+            if (currency === 'USD') {
+                return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                return '¥' + num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        }
+        
+        function formatNumber(num) {
+            return num.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+        }
+        
+        // Calculate compound interest
+        function calculate() {
+            const principal = parseFloat(principalInput.value) || 0;
+            const months = parseInt(monthsInput.value) || 0;
+            const monthlyRate = (parseFloat(rateInput.value) || 0) / 100;
+            const exchangeRate = parseFloat(exchangeRateInput.value) || 7.25;
+            
+            if (principal <= 0 || months <= 0) {
+                alert('请输入有效的金额和月数');
+                return;
+            }
+            
+            if (months > 600) {
+                alert('月数不能超过600个月（50年）');
+                return;
+            }
+            
+            // Clear previous results
+            tableBody.innerHTML = '';
+            
+            // Initial row (month 0)
+            const rows = [];
+            
+            for (let i = 0; i <= months; i++) {
+                const multiplier = Math.pow(1 + monthlyRate, i);
+                const usdValue = principal * multiplier;
+                const cnyValue = usdValue * exchangeRate;
+                
+                rows.push({
+                    month: i,
+                    multiplier: multiplier,
+                    usd: usdValue,
+                    cny: cnyValue
+                });
+            }
+            
+            // Render table
+            rows.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'table-row';
+                tr.style.animationDelay = `${index * 0.015}s`;
+                
+                const isInitial = row.month === 0;
+                const isFinal = row.month === months;
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-sm">
+                        <span class="font-medium ${isFinal ? 'text-[rgb(var(--brand-rgb))]' : 'text-gray-700'}">
+                            ${row.month === 0 ? '起始' : '第' + row.month + '月'}
+                        </span>
+                        ${isFinal ? '<span class="ml-1 text-xs bg-[rgba(var(--brand-rgb),0.1)] text-[rgb(var(--brand-rgb))] px-1.5 py-0.5 rounded">终值</span>' : ''}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-right number-display ${isFinal ? 'font-bold text-[rgb(var(--brand-rgb))]' : 'text-gray-600'}">
+                        ${row.multiplier.toFixed(4)}x
+                    </td>
+                    <td class="px-4 py-3 text-sm text-right number-display ${isFinal ? 'font-bold text-gray-800' : 'text-gray-700'}">
+                        ${formatCurrency(row.usd, 'USD')}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-right number-display ${isFinal ? 'font-bold text-gray-800' : 'text-gray-600'}">
+                        ${formatCurrency(row.cny, 'CNY')}
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+            
+            // Update summary cards
+            const finalRow = rows[rows.length - 1];
+            const totalReturn = ((finalRow.multiplier - 1) * 100);
+            
+            document.getElementById('finalUsd').textContent = formatCurrency(finalRow.usd, 'USD');
+            document.getElementById('finalCny').textContent = formatCurrency(finalRow.cny, 'CNY');
+            document.getElementById('finalMultiplier').textContent = finalRow.multiplier.toFixed(4) + 'x';
+            document.getElementById('totalProfit').textContent = '+' + formatCurrency(finalRow.usd - principal, 'USD');
+            document.getElementById('usdGain').textContent = '+' + totalReturn.toFixed(2) + '%';
+            document.getElementById('cnyGain').textContent = '+' + totalReturn.toFixed(2) + '%';
+            
+            // Render formula with KaTeX
+            try {
+                katex.render(
+                    `FV = ${principal} \\times (1 + ${(monthlyRate * 100).toFixed(2)}\\%)^{${months}} = ${finalRow.usd.toFixed(2)}`,
+                    document.getElementById('formulaBox'),
+                    { displayMode: true, throwOnError: false }
+                );
+            } catch (e) {
+                document.getElementById('formulaBox').innerHTML = 
+                    `<p class="text-gray-700">FV = $${principal} × (1 + ${(monthlyRate * 100).toFixed(2)}%)<sup>${months}</sup> = $${finalRow.usd.toFixed(2)}</p>`;
+            }
+            
+            // Show results
+            resultsSection.classList.remove('hidden');
+            
+            // Scroll to results with smooth behavior
+            setTimeout(() => {
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+        
+        // Button click
+        generateBtn.addEventListener('click', calculate);
+        
+        // Enter key support
+        [principalInput, monthsInput, rateInput, exchangeRateInput].forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    calculate();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

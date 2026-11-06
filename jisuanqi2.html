@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>复利计算器 · 月月增值</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --gradient: linear-gradient(145deg, #6366f1, #8b5cf6);
+            --bg: #f1f4f9;
+            --card: #ffffff;
+            --text: #0b1120;
+            --text-sec: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        html {
+            font-size: 16px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0 0 60px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.6;
+        }
+        .container {
+            width: 100%;
+            max-width: 460px;
+            padding: 0 16px;
+        }
+
+        /* header */
+        .header {
+            background: var(--gradient);
+            margin: 0 -16px 28px -16px;
+            padding: 56px 24px 38px 24px;
+            border-bottom-left-radius: 44px;
+            border-bottom-right-radius: 44px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -70px;
+            right: -50px;
+            width: 260px;
+            height: 260px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        .header-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(6px);
+            border-radius: 16px;
+            font-size: 27px;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            font-size: 29px;
+            font-weight: 750;
+            color: #fff;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+        .header p {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.82);
+            margin-top: 6px;
+        }
+
+        /* card */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 22px 20px;
+            margin-bottom: 18px;
+            transition: var(--transition);
+        }
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 17px;
+            font-weight: 620;
+            color: var(--text);
+            margin-bottom: 18px;
+        }
+        .card-title .badge {
+            margin-left: auto;
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--gradient);
+            color: #fff;
+            padding: 2px 14px;
+            border-radius: 30px;
+        }
+
+        /* form */
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 510;
+            color: var(--text-sec);
+            margin-bottom: 6px;
+        }
+        .input-wrap {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+        .input-wrap:focus-within {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        .input-prefix,
+        .input-suffix {
+            padding: 0 14px;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-muted);
+            white-space: nowrap;
+            user-select: none;
+        }
+        .input-prefix {
+            border-right: 1px solid var(--border);
+            padding-right: 12px;
+            margin-right: 4px;
+            min-width: 32px;
+            text-align: center;
+        }
+        .input-suffix {
+            border-left: 1px solid var(--border);
+            padding-left: 12px;
+            margin-left: 4px;
+            font-size: 14px;
+            color: var(--text-sec);
+        }
+        .input-wrap input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 13px 10px;
+            font-size: 17px;
+            font-weight: 490;
+            color: var(--text);
+            min-width: 0;
+            width: 100%;
+            font-family: var(--font);
+        }
+        .input-wrap input::placeholder {
+            color: var(--text-muted);
+            font-weight: 350;
+            font-size: 15px;
+        }
+        .input-wrap input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .input-wrap input::-webkit-outer-spin-button,
+        .input-wrap input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* button */
+        .btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: var(--gradient);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 17px;
+            font-weight: 630;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+        }
+        .btn .icon {
+            font-size: 21px;
+            transition: transform 0.3s;
+        }
+        .btn:hover .icon {
+            transform: rotate(90deg);
+        }
+
+        /* exchange rate hint */
+        .rate-hint {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            background: rgba(99, 102, 241, 0.04);
+            border-radius: 30px;
+            display: inline-block;
+            margin: -4px auto 18px auto;
+        }
+        .rate-hint strong {
+            color: var(--text-sec);
+            font-weight: 590;
+        }
+
+        /* summary */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .summary-item {
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+            padding: 14px 8px;
+            text-align: center;
+        }
+        .summary-item .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-weight: 580;
+            margin-bottom: 4px;
+        }
+        .summary-item .value {
+            font-size: 19px;
+            font-weight: 680;
+            color: var(--text);
+            word-break: break-word;
+        }
+        .summary-item .value.green {
+            color: #059669;
+        }
+        .summary-item .value.red {
+            color: #dc2626;
+        }
+        .summary-item .value.purple {
+            color: var(--primary);
+        }
+        .summary-item.accent {
+            background: var(--gradient);
+        }
+        .summary-item.accent .label,
+        .summary-item.accent .value {
+            color: #fff;
+        }
+
+        /* table */
+        .table-wrap {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 440px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            -webkit-overflow-scrolling: touch;
+        }
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 320px;
+        }
+        .table-wrap thead {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+        .table-wrap thead th {
+            background: var(--gradient);
+            color: #fff;
+            font-weight: 610;
+            font-size: 13px;
+            padding: 12px 10px;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .table-wrap thead th:first-child {
+            text-align: center;
+        }
+        .table-wrap tbody tr {
+            transition: background 0.12s;
+        }
+        .table-wrap tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        .table-wrap tbody tr:hover {
+            background: #eef2ff;
+        }
+        .table-wrap tbody td {
+            padding: 11px 10px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+            font-variant-numeric: tabular-nums;
+            color: var(--text-sec);
+        }
+        .table-wrap tbody td:first-child {
+            text-align: center;
+            font-weight: 560;
+            color: var(--text);
+        }
+        .table-wrap tbody td:last-child {
+            font-weight: 510;
+        }
+        .td-mul {
+            color: var(--primary) !important;
+            font-weight: 560 !important;
+        }
+        .td-usd {
+            color: #059669 !important;
+            font-weight: 540 !important;
+        }
+        .td-cny {
+            color: #dc2626 !important;
+            font-weight: 540 !important;
+        }
+
+        /* empty state */
+        .empty {
+            text-align: center;
+            padding: 48px 20px 36px;
+            color: var(--text-muted);
+        }
+        .empty .big-icon {
+            font-size: 58px;
+            opacity: 0.55;
+            margin-bottom: 12px;
+        }
+        .empty .main-text {
+            font-size: 17px;
+            font-weight: 470;
+        }
+        .empty .sub-text {
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* result section visibility */
+        .result-area {
+            display: none;
+        }
+        .result-area.active {
+            display: block;
+            animation: fadeUp 0.45s ease forwards;
+        }
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* toast */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: #0b1120;
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            max-width: calc(100% - 40px);
+            text-align: center;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.err {
+            background: #dc2626;
+        }
+        .toast.ok {
+            background: #059669;
+        }
+
+        /* footer */
+        .footer {
+            text-align: center;
+            padding: 30px 16px 10px;
+            font-size: 13px;
+            color: var(--text-muted);
+            max-width: 460px;
+            width: 100%;
+        }
+
+        @media (max-width: 370px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            .card {
+                padding: 18px 14px;
+            }
+            .summary-grid {
+                gap: 6px;
+            }
+            .summary-item .value {
+                font-size: 16px;
+            }
+            .table-wrap tbody td {
+                font-size: 12px;
+                padding: 8px 6px;
+            }
+            .table-wrap thead th {
+                font-size: 11px;
+                padding: 9px 6px;
+            }
+            .input-wrap input {
+                font-size: 15px;
+                padding: 11px 8px;
+            }
+        }
+        @media (min-width: 461px) {
+            .container {
+                padding: 0 24px;
+            }
+            .header {
+                margin: 0 -24px 32px -24px;
+                padding: 68px 32px 44px 32px;
+                border-bottom-left-radius: 48px;
+                border-bottom-right-radius: 48px;
+            }
+            .header h1 {
+                font-size: 33px;
+            }
+            .card {
+                padding: 28px 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="container">
+
+        <header class="header">
+            <div class="header-content">
+                <div class="header-icon">💎</div>
+                <h1>复利计算器</h1>
+                <p>每月复利 · 美金转人民币一目了然</p>
+            </div>
+        </header>
+
+        <!-- 输入卡片 -->
+        <div class="card">
+            <div class="card-title">
+                ✏️ 输入参数
+                <span class="badge">月复利</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="amount"><span>💵</span> 美金本金</label>
+                <div class="input-wrap">
+                    <span class="input-prefix">$</span>
+                    <input type="number" id="amount" placeholder="例 1000" min="0" step="0.01" value="1000">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="months"><span>📆</span> 投资月数</label>
+                <div class="input-wrap">
+                    <input type="number" id="months" placeholder="例 12" min="1" step="1" value="12">
+                    <span class="input-suffix">个月</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="rate"><span>📈</span> 月化收益率</label>
+                <div class="input-wrap">
+                    <input type="number" id="rate" placeholder="例 5" min="0" max="100" step="0.1" value="5">
+                    <span class="input-suffix">%</span>
+                </div>
+            </div>
+            <button class="btn" id="calcBtn">
+                <span class="icon">⚡</span>
+                生成复利表
+            </button>
+        </div>
+
+        <!-- 汇率提示 -->
+        <div style="text-align:center;">
+            <span class="rate-hint">🔁 参考汇率 <strong>1 USD = 7.00 CNY</strong></span>
+        </div>
+
+        <!-- 结果区域 -->
+        <div class="result-area" id="resultArea">
+
+            <!-- 汇总卡片 -->
+            <div class="card">
+                <div class="card-title">
+                    📊 最终收益
+                    <span class="badge">汇总</span>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="label">复利倍数</div>
+                        <div class="value purple" id="finalMul">—</div>
+                    </div>
+                    <div class="summary-item accent">
+                        <div class="label">美金资产</div>
+                        <div class="value" id="finalUsd">—</div>
+                    </div>
+                    <div class="summary-item accent">
+                        <div class="label">人民币资产</div>
+                        <div class="value" id="finalCny">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表格卡片 -->
+            <div class="card">
+                <div class="card-title">
+                    📄 逐月明细
+                    <span class="badge" id="rowCount">0 行</span>
+                </div>
+                <div class="table-wrap" id="tableWrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;">月份</th>
+                                <th>复利倍数</th>
+                                <th>美金资产</th>
+                                <th>人民币资产</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:10px; font-size:13px; color:var(--text-muted); text-align:right;">
+                    每月复利计算
+                </div>
+            </div>
+        </div>
+
+        <!-- 空状态 -->
+        <div class="card" id="emptyCard">
+            <div class="empty">
+                <div class="big-icon">📭</div>
+                <div class="main-text">暂无数据</div>
+                <div class="sub-text">输入参数后点击「生成复利表」</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer">复利计算器 · 仅供参考，不构成投资建议</div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // DOM
+            const amountEl = document.getElementById('amount');
+            const monthsEl = document.getElementById('months');
+            const rateEl = document.getElementById('rate');
+            const calcBtn = document.getElementById('calcBtn');
+            const resultArea = document.getElementById('resultArea');
+            const emptyCard = document.getElementById('emptyCard');
+            const tableBody = document.getElementById('tableBody');
+            const rowCount = document.getElementById('rowCount');
+            const finalMul = document.getElementById('finalMul');
+            const finalUsd = document.getElementById('finalUsd');
+            const finalCny = document.getElementById('finalCny');
+            const toast = document.getElementById('toast');
+
+            const FX = 7;
+            let toastTimer = null;
+
+            // utils
+            function fmt(n, d = 2) {
+                return n.toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
+            function fmtMul(n) {
+                return n.toFixed(4);
+            }
+
+            function getNum(el) {
+                const v = parseFloat(el.value.trim());
+                return isNaN(v) ? null : v;
+            }
+
+            function showToast(msg, type = 'ok', dur = 2000) {
+                if (toastTimer) {
+                    clearTimeout(toastTimer);
+                    toast.classList.remove('show', 'err', 'ok');
+                }
+                toast.textContent = msg;
+                toast.className = 'toast ' + type;
+                void toast.offsetWidth;
+                toast.classList.add('show');
+                toastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                    toastTimer = null;
+                }, dur);
+            }
+
+            // ripple
+            function addRipple(e, btn) {
+                const rect = btn.getBoundingClientRect();
+                const sz = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - sz / 2;
+                const y = e.clientY - rect.top - sz / 2;
+                const span = document.createElement('span');
+                span.style.cssText =
+                    `position:absolute;border-radius:50%;background:rgba(255,255,255,0.35);width:${sz}px;height:${sz}px;left:${x}px;top:${y}px;transform:scale(0);pointer-events:none;animation:rippleAnim 0.6s ease-out;`;
+                btn.appendChild(span);
+                span.addEventListener('animationend', () => span.remove());
+            }
+            // inject keyframes
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent =
+                `@keyframes rippleAnim{to{transform:scale(4);opacity:0}}`;
+            document.head.appendChild(styleSheet);
+
+            // main calculation
+            function compute() {
+                const principal = getNum(amountEl);
+                const months = getNum(monthsEl);
+                const ratePct = getNum(rateEl);
+
+                if (principal === null || principal <= 0) {
+                    showToast('请输入有效的美金本金 (>0)', 'err');
+                    amountEl.focus();
+                    return false;
+                }
+                if (months === null || months < 1 || !Number.isInteger(months)) {
+                    showToast('请输入有效的月数 (正整数)', 'err');
+                    monthsEl.focus();
+                    return false;
+                }
+                if (ratePct === null || ratePct < 0) {
+                    showToast('请输入有效的月化收益率 (≥0)', 'err');
+                    rateEl.focus();
+                    return false;
+                }
+
+                const monthlyRate = ratePct / 100;
+                const rows = [];
+
+                for (let m = 1; m <= months; m++) {
+                    const mult = Math.pow(1 + monthlyRate, m);
+                    const usd = principal * mult;
+                    const cny = usd * FX;
+                    rows.push({ month: m, mult, usd, cny });
+                }
+
+                render(rows, principal);
+                return true;
+            }
+
+            function render(rows, principal) {
+                // table
+                let html = '';
+                for (const r of rows) {
+                    html += `<tr>
+                                <td>${r.month}</td>
+                                <td class="td-mul">${fmtMul(r.mult)}</td>
+                                <td class="td-usd">$${fmt(r.usd)}</td>
+                                <td class="td-cny">¥${fmt(r.cny)}</td>
+                            </tr>`;
+                }
+                tableBody.innerHTML = html;
+                rowCount.textContent = rows.length + ' 行';
+
+                // summary
+                const last = rows[rows.length - 1];
+                finalMul.textContent = fmtMul(last.mult) + '×';
+                finalUsd.textContent = '$' + fmt(last.usd);
+                finalCny.textContent = '¥' + fmt(last.cny);
+
+                // show/hide
+                resultArea.classList.add('active');
+                resultArea.style.display = 'block';
+                emptyCard.style.display = 'none';
+
+                // re-trigger animation
+                resultArea.style.animation = 'none';
+                void resultArea.offsetWidth;
+                resultArea.style.animation = 'fadeUp 0.45s ease forwards';
+
+                showToast('✅ 已生成 ' + rows.length + ' 条记录', 'ok', 1500);
+            }
+
+            function resetUI() {
+                resultArea.classList.remove('active');
+                resultArea.style.display = 'none';
+                emptyCard.style.display = 'block';
+                tableBody.innerHTML = '';
+                rowCount.textContent = '0 行';
+                finalMul.textContent = '—';
+                finalUsd.textContent = '—';
+                finalCny.textContent = '—';
+            }
+
+            // event
+            calcBtn.addEventListener('click', function(e) {
+                addRipple(e, this);
+                compute();
+            });
+
+            // allow enter key
+            document.querySelectorAll('.input-wrap input').forEach(inp => {
+                inp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        calcBtn.click();
+                    }
+                });
+            });
+
+            // init empty
+            resetUI();
+
+            // optional: pre-fill demo on load? keep empty.
+        })();
+    </script>
+</body>
+</html>
