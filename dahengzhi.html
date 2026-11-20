@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>返佣收益计算器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root{
+    --bg:#0f1420;
+    --card:#1a2233;
+    --card2:#222c42;
+    --line:#2c3850;
+    --txt:#eef1f8;
+    --sub:#8d9ab5;
+    --brand:#4f8cff;
+    --brand2:#38d6b0;
+    --gold:#ffcf5c;
+  }
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:radial-gradient(1200px 700px at 50% -10%,#1c2944 0%,var(--bg) 55%);
+    color:var(--txt);
+    min-height:100vh;
+    padding:24px 16px 40px;
+    display:flex;
+    justify-content:center;
+  }
+  .wrap{ width:100%; max-width:440px; }
+  .head{ text-align:center; margin-bottom:22px; }
+  .head h1{ font-size:24px; letter-spacing:.5px; }
+  .head p{ color:var(--sub); font-size:13px; margin-top:6px; }
+
+  .card{
+    background:linear-gradient(160deg,var(--card),var(--card2));
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+  }
+  .field{ margin-bottom:18px; }
+  .field:last-child{ margin-bottom:0; }
+  .label-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .label{ font-size:15px; font-weight:600; }
+  .badge{
+    font-size:12px; color:var(--sub);
+    background:rgba(255,255,255,.06);
+    border:1px solid var(--line);
+    padding:3px 10px; border-radius:20px;
+  }
+  .input-box{
+    display:flex; align-items:center;
+    background:rgba(0,0,0,.25);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+    transition:.2s;
+  }
+  .input-box:focus-within{ border-color:var(--brand); box-shadow:0 0 0 3px rgba(79,140,255,.18); }
+  .input-box input{
+    flex:1; min-width:0;
+    background:transparent; border:none; outline:none;
+    color:var(--txt); font-size:22px; font-weight:700;
+    padding:14px 4px 14px 16px;
+    font-family:inherit;
+  }
+  .input-box .unit{ color:var(--sub); font-size:14px; padding:0 16px; white-space:nowrap; }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  input[type=number]{ -moz-appearance:textfield; }
+
+  .stepper{ display:flex; gap:8px; margin-top:10px; }
+  .stepper button{
+    flex:1; background:rgba(79,140,255,.12); color:var(--brand);
+    border:1px solid rgba(79,140,255,.3); border-radius:10px;
+    padding:8px 0; font-size:13px; font-weight:600; cursor:pointer;
+    font-family:inherit; transition:.15s;
+  }
+  .stepper button:active{ transform:scale(.96); background:rgba(79,140,255,.25); }
+  .sub-note{ color:var(--sub); font-size:12px; margin-top:10px; line-height:1.6; }
+
+  .result{ text-align:center; }
+  .result .top-label{ color:var(--sub); font-size:13px; margin-bottom:6px; }
+  .price{ font-size:44px; font-weight:800; line-height:1.1;
+    background:linear-gradient(90deg,var(--gold),var(--brand2));
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .price small{ font-size:18px; font-weight:600; }
+  .hint{ color:var(--sub); font-size:12px; margin-top:8px; }
+
+  .breakdown{ margin-top:18px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
+  .chip{
+    background:rgba(0,0,0,.25); border:1px solid var(--line);
+    border-radius:12px; padding:10px 14px; text-align:center; flex:1; min-width:90px;
+  }
+  .chip .k{ color:var(--sub); font-size:12px; }
+  .chip .v{ font-size:18px; font-weight:700; margin-top:4px; }
+
+  .formula{
+    font-size:12.5px; color:var(--sub); line-height:1.9; text-align:center; margin-top:18px;
+    border-top:1px dashed var(--line); padding-top:14px;
+  }
+  .formula b{ color:var(--txt); font-weight:600; }
+  .tip{
+    margin-top:14px; font-size:12px; color:var(--sub);
+    background:rgba(255,207,92,.08); border:1px solid rgba(255,207,92,.25);
+    border-radius:12px; padding:10px 14px; text-align:center;
+  }
+  .tip.on{ color:var(--gold); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>返佣收益计算器</h1>
+    <p>推荐人数 · 每日手数 · 月操作天数，一键算清月收益</p>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <div class="label-row">
+        <span class="label">推荐人数</span>
+        <span class="badge">a</span>
+      </div>
+      <div class="input-box">
+        <input id="a" type="number" inputmode="numeric" min="0" value="2">
+        <span class="unit">人</span>
+      </div>
+      <div class="sub-note">既决定返佣单价，也作为乘数参与最终收益计算</div>
+      <div class="stepper">
+        <button data-target="a" data-step="-5">-5</button>
+        <button data-target="a" data-step="-1">-1</button>
+        <button data-target="a" data-step="1">+1</button>
+        <button data-target="a" data-step="5">+5</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label-row">
+        <span class="label">每天手数</span>
+        <span class="badge">b</span>
+      </div>
+      <div class="input-box">
+        <input id="b" type="number" inputmode="numeric" min="0" value="8">
+        <span class="unit">手 / 天</span>
+      </div>
+      <div class="stepper">
+        <button data-target="b" data-step="-5">-5</button>
+        <button data-target="b" data-step="-1">-1</button>
+        <button data-target="b" data-step="1">+1</button>
+        <button data-target="b" data-step="5">+5</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label-row">
+        <span class="label">一个月操作天数</span>
+        <span class="badge">c</span>
+      </div>
+      <div class="input-box">
+        <input id="c" type="number" inputmode="numeric" min="0" value="20">
+        <span class="unit">天 / 月</span>
+      </div>
+      <div class="stepper">
+        <button data-target="c" data-step="-5">-5</button>
+        <button data-target="c" data-step="-1">-1</button>
+        <button data-target="c" data-step="1">+1</button>
+        <button data-target="c" data-step="5">+5</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card result">
+    <div class="top-label">预估月收益</div>
+    <div class="price"><small>¥</small><span id="total">0</span></div>
+    <div class="hint" id="hint">每推荐 1 人返佣 +2 元，最高封顶 50 元</div>
+
+    <div class="breakdown">
+      <div class="chip"><div class="k">返佣单价</div><div class="v" id="chipPrice">0</div></div>
+      <div class="chip"><div class="k">日收益</div><div class="v" id="chipDay">0</div></div>
+      <div class="chip"><div class="k">月收益</div><div class="v" id="chipMonth">0</div></div>
+    </div>
+
+    <div class="formula">
+      <b>返佣单价</b> = min(a × 2, 50)<br>
+      <b>月收益</b> = 返佣单价 × a × b × c
+    </div>
+    <div class="tip" id="tip">试试把推荐人数调到 25 以上，看看封顶效果 →</div>
+  </div>
+</div>
+
+<script>
+  var elA = document.getElementById('a');
+  var elB = document.getElementById('b');
+  var elC = document.getElementById('c');
+  var elTotal = document.getElementById('total');
+  var elPrice = document.getElementById('chipPrice');
+  var elDay = document.getElementById('chipDay');
+  var elMonth = document.getElementById('chipMonth');
+  var elHint = document.getElementById('hint');
+  var elTip = document.getElementById('tip');
+
+  function calc(){
+    var a = parseFloat(elA.value);
+    var b = parseFloat(elB.value);
+    var c = parseFloat(elC.value);
+    if(isNaN(a)) a = 0;
+    if(isNaN(b)) b = 0;
+    if(isNaN(c)) c = 0;
+    if(a < 0) a = 0;
+    if(b < 0) b = 0;
+    if(c < 0) c = 0;
+
+    var price = Math.min(a * 2, 50);
+    var capped = (a * 2) >= 50;
+    var day = price * a * b;
+    var month = day * c;
+
+    elPrice.textContent = price.toFixed(0);
+    elDay.textContent = '¥' + fmt(day);
+    elMonth.textContent = '¥' + fmt(month);
+    elTotal.textContent = fmt(month);
+
+    if(capped){
+      elHint.innerHTML = '推荐人数已达 <b style="color:#38d6b0">' + a + '</b> 人，返佣单价封顶 50 元，再多推荐也不会增加单价';
+      elTip.className = 'tip on';
+      elTip.textContent = '已封顶 ✓ 单价不再涨，但 a 仍作为乘数，总人数越多月收益越高';
+    }else{
+      elHint.innerHTML = '当前推荐 <b style="color:#4f8cff">' + a + '</b> 人，返佣单价 ' + price.toFixed(0) + ' 元（每多 1 人 +2 元）';
+      elTip.className = 'tip';
+      var need = Math.ceil((50 - a*2)/2);
+      if(need > 0){
+        elTip.textContent = '再推荐 ' + need + ' 人即可让返佣单价达到 50 元封顶 →';
+      }else{
+        elTip.textContent = '试试把推荐人数调到 25 以上，看看封顶效果 →';
+      }
+    }
+  }
+
+  function fmt(n){
+    if(n === 0) return '0';
+    if(n >= 10000) return (n/10000).toFixed(n%10000===0?0:2) + '万';
+    return Math.round(n*100)/100 + '';
+  }
+
+  function bindInput(el){
+    el.addEventListener('input', calc);
+    el.addEventListener('change', function(){
+      var v = parseFloat(el.value);
+      if(isNaN(v) || v < 0) el.value = 0;
+      calc();
+    });
+  }
+  bindInput(elA);
+  bindInput(elB);
+  bindInput(elC);
+
+  document.querySelectorAll('.stepper button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var target = document.getElementById(btn.dataset.target);
+      var step = parseInt(btn.dataset.step, 10);
+      var v = parseFloat(target.value);
+      if(isNaN(v)) v = 0;
+      v += step;
+      if(v < 0) v = 0;
+      target.value = v;
+      calc();
+    });
+  });
+
+  calc();
+</script>
+</body>
+</html>
